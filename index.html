@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌿 NSC · Laboratorio Sexto Primaria 🌿</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Quicksand', sans-serif; overflow-x: hidden; background: #0b2f1f; }
+    
+    /* ========== PANTALLA INICIO JUNGLA ========== */
+    .jungla-portada {
+      position: relative; width: 100%; min-height: 100vh;
+      background: radial-gradient(circle at 30% 40%, #1d5e3f, #0a2e1b);
+      overflow: hidden; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; perspective: 8px;
+    }
+    .parallax-layer { position: absolute; top: 0; left: 0; width: 100%; height: 120%; pointer-events: none; }
+    .nubes {
+      position: absolute; width: 100%; height: 100%;
+      background: repeating-radial-gradient(circle at 20% 30%, rgba(255,255,240,0.2) 0%, transparent 18%);
+      filter: blur(12px); transform: translateZ(-3px) scale(1.8);
+      animation: moverNubes 38s infinite alternate ease-in-out;
+    }
+    .hojas-trop {
+      position: absolute; width: 100%; height: 100%;
+      background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><path d="M150,150 Q200,40 280,100 Q220,160 150,150" fill="%23307a3e" opacity="0.6"/><path d="M800,600 Q880,520 950,610 Q880,680 800,600" fill="%232d8c4e" opacity="0.5"/><path d="M100,600 Q180,510 260,590 Q170,680 100,600" fill="%231e6b37" opacity="0.7"/><path d="M1050,150 Q1120,40 1180,120 Q1090,180 1050,150" fill="%233c9e5a" opacity="0.5"/></svg>');
+      background-size: cover; transform: translateZ(-1.5px) scale(1.25);
+      animation: flotarHojas 12s infinite alternate;
+    }
+    .hojas-delante {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 180px;
+      background: url('data:image/svg+xml;utf8,<svg width="100%" height="180" viewBox="0 0 1200 180" xmlns="http://www.w3.org/2000/svg"><path d="M0,180 Q100,90 200,130 Q350,40 500,110 Q650,30 800,120 Q950,40 1100,140 L1200,90 L1200,180 Z" fill="%23164f2b" opacity="0.9"/><path d="M-20,180 Q120,120 280,150 Q420,70 600,140 Q750,60 950,130 Q1080,70 1220,120 L1220,180 Z" fill="%230e3d22" opacity="0.8"/></svg>');
+      background-size: cover; transform: translateZ(0px);
+    }
+    @keyframes moverNubes { 0% { transform: translateZ(-3px) scale(1.8) translateX(-3%); } 100% { transform: translateZ(-3px) scale(1.8) translateX(5%); } }
+    @keyframes flotarHojas { 0% { transform: translateZ(-1.5px) scale(1.25) rotate(0deg); } 100% { transform: translateZ(-1.5px) scale(1.25) rotate(1.5deg); } }
+    
+    .contenido-portada {
+      position: relative; z-index: 10; text-align: center; color: #f9f7e8;
+      text-shadow: 6px 6px 12px #0a1f0e; padding: 1.5rem;
+      background: rgba(10, 40, 18, 0.3); backdrop-filter: blur(5px);
+      border-radius: 60px 20px 60px 20px; border: 2px solid #c0e084;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    h1 { font-size: 5.5rem; font-weight: 700; letter-spacing: 6px; }
+    .subtitulo-jungla { font-size: 1.8rem; margin: 10px 0 30px; background: #1e4a2c; display: inline-block; padding: 8px 32px; border-radius: 50px; }
+    .btn-entrar {
+      background: #fedb5f; border: none; padding: 20px 60px; font-size: 2.2rem; font-weight: bold;
+      color: #173e1f; border-radius: 80px; box-shadow: 0 15px 0 #7b4f1a, 0 8px 20px black;
+      cursor: pointer; transition: 0.08s; border: 3px solid #fef9ae; text-transform: uppercase;
+    }
+    .btn-entrar:active { transform: translateY(10px); box-shadow: 0 5px 0 #7b4f1a, 0 8px 20px black; }
+    
+    /* ========== MODAL LOGIN ========== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,20,5,0.8); backdrop-filter: blur(6px);
+      display: none; justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-card {
+      background: #f5fbe8; padding: 30px 40px; border-radius: 48px 16px 48px 16px;
+      box-shadow: 0 30px 40px #0f2b0c; width: 450px; max-width: 90%;
+      text-align: center;
+    }
+    
+    /* LOGO EN MODAL */
+    .logo-modal {
+      width: 200px; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    }
+    
+    .input-selva { width: 100%; padding: 14px; margin: 10px 0; border-radius: 40px; border: 3px solid #58853e; background: #fefee4; }
+    .btn-aceptar { background: #2b7433; border: none; color: white; font-weight: bold; padding: 14px; font-size: 1.3rem; border-radius: 40px; width: 100%; cursor: pointer; }
+    
+    /* ========== APP PRINCIPAL ========== */
+    .app-principal { display: none; min-height: 100vh; background: #d9e6cf; background-image: radial-gradient(circle at 10% 20%, #e2f0d6, #bcd0aa); padding: 20px; }
+    .contenido-ejercicio {
+      max-width: 1300px; margin: 0 auto; background: rgba(253, 255, 240, 0.85);
+      backdrop-filter: blur(12px); padding: 30px; border-radius: 60px 20px;
+      border: 2px solid #9bc181;
+    }
+    
+    /* LOGO EN APP PRINCIPAL */
+    .logo-app {
+      display: block; margin: 0 auto 20px; width: 250px;
+      filter: drop-shadow(0 6px 12px rgba(0,30,0,0.3));
+    }
+    
+    .brillante-error { color: #ff1a1a; text-shadow: 0 0 12px #ff9090; font-weight: bold; font-size: 1.8rem; }
+    .barra-fondo { height: 36px; background: #c2d6b2; border-radius: 40px; }
+    .barra-llena { height: 100%; width: 0%; background: #d44; border-radius: 40px; transition: width 0.15s; }
+    .zona-upload { background: #e6f2db; padding: 20px; border-radius: 30px; border: 3px dashed #3f6e31; }
+    .lista-chequeo { background: #edffe3; padding: 24px; border-radius: 40px; margin: 20px 0; }
+
+    /* ========== VENTANA DE FELICITACIONES ========== */
+    .felicitaciones-fullscreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(145deg, #0a3d1f 0%, #1a6e3a 50%, #2d8c4e 100%);
+      z-index: 1000; display: none; justify-content: center; align-items: center;
+      overflow: hidden;
+    }
+    
+    .hoja-decorativa {
+      position: absolute; pointer-events: none; opacity: 0.85;
+      animation: mecerHoja 4s infinite ease-in-out alternate;
+    }
+    
+    @keyframes mecerHoja {
+      0% { transform: rotate(-5deg) translateX(0); }
+      100% { transform: rotate(8deg) translateX(15px); }
+    }
+    
+    .hoja1 { top: 5%; left: 2%; width: 180px; animation-duration: 3.5s; }
+    .hoja2 { top: 15%; right: 3%; width: 220px; animation-duration: 4.2s; animation-delay: 0.5s; }
+    .hoja3 { bottom: 10%; left: 5%; width: 200px; animation-duration: 3.8s; animation-delay: 1s; }
+    .hoja4 { bottom: 5%; right: 8%; width: 250px; animation-duration: 4.5s; }
+    .hoja5 { top: 40%; left: -20px; width: 160px; animation-duration: 3s; }
+    .hoja6 { top: 60%; right: -30px; width: 190px; animation-duration: 5s; animation-delay: 0.8s; }
+    .hoja7 { top: 30%; left: 15%; width: 130px; animation-duration: 3.3s; animation-delay: 0.3s; }
+    .hoja8 { bottom: 30%; right: 15%; width: 170px; animation-duration: 4s; animation-delay: 1.2s; }
+    
+    .contenido-felicitacion {
+      position: relative; z-index: 10; text-align: center; color: #f9f7e8;
+      text-shadow: 4px 4px 12px #0a1f0e; padding: 3rem;
+      background: rgba(20, 60, 25, 0.5); backdrop-filter: blur(16px);
+      border-radius: 80px 20px 80px 20px; border: 4px solid #fdd835;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 40px rgba(255,255,200,0.3);
+      max-width: 800px; margin: 20px;
+      animation: aparecer 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @keyframes aparecer {
+      0% { transform: scale(0.2) rotate(-10deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    
+    .contenido-felicitacion h2 {
+      font-size: 5rem; font-weight: 700; margin-bottom: 20px;
+      background: linear-gradient(45deg, #ffd700, #fff8b0);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: none;
+    }
+    
+    .nombre-grado-feliz {
+      font-size: 3.5rem; background: #1e4a2c; display: inline-block;
+      padding: 15px 50px; border-radius: 60px; margin: 20px 0;
+      box-shadow: inset 0 -3px 0 #a2d679, 0 15px 20px rgba(0,0,0,0.3);
+    }
+    
+    .puntuacion-gigante {
+      font-size: 6rem; font-weight: 800; color: #ffeb3b;
+      text-shadow: 6px 6px 0 #2e7d32;
+      margin: 20px 0;
+    }
+    
+    .btn-cerrar-feliz {
+      background: #fedb5f; border: none; padding: 18px 50px; font-size: 1.8rem;
+      font-weight: bold; color: #173e1f; border-radius: 60px;
+      box-shadow: 0 10px 0 #7b4f1a; cursor: pointer; margin-top: 30px;
+      transition: 0.05s; border: 3px solid #fef9ae;
+    }
+    
+    .btn-cerrar-feliz:active { transform: translateY(6px); box-shadow: 0 4px 0 #7b4f1a; }
+  </style>
+</head>
+<body>
+
+<!-- PANTALLA INICIO -->
+<div class="jungla-portada" id="pantallaInicio">
+  <div class="parallax-layer nubes"></div>
+  <div class="parallax-layer hojas-trop"></div>
+  <div class="hojas-delante"></div>
+  <div class="contenido-portada">
+    <h1>🌱 PÁGINA DE SEXTO PRIMARIA NSC 🌱</h1>
+    <div class="subtitulo-jungla"><i class="fas fa-leaf"></i> Laboratorio de la selva <i class="fas fa-bug"></i></div>
+    <button class="btn-entrar" id="btnEntrarJungla"><i class="fas fa-tree"></i> ENTRAR <i class="fas fa-tree"></i></button>
+  </div>
+</div>
+
+<!-- MODAL LOGIN (CON LOGO) -->
+<div class="modal-overlay" id="modalLogin">
+  <div class="modal-card">
+    <img src="https://res.cloudinary.com/dmis07evg/image/upload/q_auto/f_auto/v1776731623/logo-white_hmxpau.png" alt="NSC Logo" class="logo-modal">
+    <h2>🌿 Explorador 🌿</h2>
+    <input type="text" id="nombreEstudiante" class="input-selva" placeholder="Tu nombre">
+    <input type="text" id="gradoEstudiante" class="input-selva" placeholder="Grado (ej: 6to Primaria)">
+    <button class="btn-aceptar" id="btnAceptarLogin"><i class="fas fa-check"></i> Aceptar</button>
+  </div>
+</div>
+
+<!-- APP EJERCICIO (CON LOGO) -->
+<div class="app-principal" id="appEjercicio">
+  <div class="contenido-ejercicio">
+    <img src="https://res.cloudinary.com/dmis07evg/image/upload/q_auto/f_auto/v1776731623/logo-white_hmxpau.png" alt="NSC Logo" class="logo-app">
+    <h2><i class="fas fa-flask"></i> EJERCICIO N°1 · CADENA ALIMENTICIA <i class="fas fa-fish"></i></h2>
+    
+    <div id="zonaCargaSimulada" style="display: none; margin: 20px 0;">
+      <div class="barra-fondo"><div class="barra-llena" id="barraProgresoFalsa"></div></div>
+      <div id="mensajeCodigoSimulado" style="font-family: monospace; background: #0f1a0e; color: #8efc8e; padding: 8px; margin-top: 5px;">> Iniciando secuencia...</div>
+    </div>
+
+    <div class="lista-chequeo">
+      <h3>📜 REQUISITOS DEL DOCUMENTO</h3>
+      <ul style="line-height: 1.8;">
+        <li>✅ Documento .docx</li>
+        <li>✅ Nombre: [Estudiante] + Sexto/6to Primaria</li>
+        <li>✅ Primera línea: "Cadena alimenticia" (Tamaño 16, Color ROJO)</li>
+        <li>✅ Resto del contenido: Tamaño 12, Color NEGRO</li>
+        <li>✅ Fuente: Times New Roman en TODO el documento</li>
+        <li>✅ Párrafo 1: ¿Qué es la cadena alimenticia?</li>
+        <li>✅ Párrafo 2: Depredador y presa (en dos columnas)</li>
+        <li>✅ <strong>Gráfico SmartArt</strong> (Insertar → SmartArt) sobre cadena alimenticia</li>
+        <li>✅ Dos imágenes relacionadas al tema</li>
+        <li>✅ Texto final: "Documento de Laboratorio NSC"</li>
+      </ul>
+    </div>
+
+    <div class="zona-upload">
+      <label><i class="fas fa-cloud-upload-alt"></i> Subir documento Word (.docx):</label>
+      <input type="file" id="uploadDoc" accept=".docx" style="padding: 12px; width: 100%;">
+      <p style="margin-top: 8px;"><i class="fas fa-sync-alt"></i> Intentos ilimitados</p>
+    </div>
+
+    <div id="mensajeEvaluacion" style="margin-top: 20px; padding: 20px; background: #fffcf0; border-radius: 30px;">
+      <span id="textoResultado">Esperando documento...</span>
+      <div id="detallesError" style="margin-top: 10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VENTANA DE FELICITACIONES -->
+<div class="felicitaciones-fullscreen" id="ventanaFelicitaciones">
+  <svg class="hoja-decorativa hoja1" viewBox="0 0 200 200" fill="#2d8c4e">
+    <path d="M100,10 C130,10 170,40 180,80 C190,120 160,160 120,180 C100,190 80,180 70,160 C60,140 50,100 70,60 C80,30 90,10 100,10Z"/>
+    <path d="M100,10 C90,50 60,80 40,100" stroke="#1e6b37" stroke-width="3" fill="none"/>
+    <path d="M100,10 C120,60 150,80 170,100" stroke="#1e6b37" stroke-width="3" fill="none"/>
+    <ellipse cx="130" cy="140" rx="15" ry="30" transform="rotate(30 130 140)" fill="#1e6b37" opacity="0.5"/>
+    <ellipse cx="60" cy="130" rx="12" ry="25" transform="rotate(-20 60 130)" fill="#1e6b37" opacity="0.5"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja2" viewBox="0 0 200 200" fill="#3c9e5a">
+    <path d="M120,20 C160,30 190,80 180,130 C170,170 130,190 90,180 C60,170 30,140 20,100 C10,60 40,20 120,20Z"/>
+    <path d="M120,20 C100,70 80,100 60,130" stroke="#1a5c2e" stroke-width="3" fill="none"/>
+    <path d="M120,20 C140,80 160,110 180,130" stroke="#1a5c2e" stroke-width="3" fill="none"/>
+    <circle cx="80" cy="90" r="8" fill="#1a5c2e" opacity="0.4"/>
+    <circle cx="150" cy="100" r="10" fill="#1a5c2e" opacity="0.4"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja3" viewBox="0 0 200 200" fill="#2a7a42">
+    <path d="M50,50 C80,20 130,30 160,70 C190,110 170,160 130,180 C90,200 40,180 20,140 C0,100 20,80 50,50Z"/>
+    <path d="M50,50 C70,90 100,120 130,140" stroke="#0e3d22" stroke-width="3" fill="none"/>
+    <ellipse cx="100" cy="120" rx="20" ry="40" transform="rotate(-15 100 120)" fill="#0e3d22" opacity="0.3"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja4" viewBox="0 0 200 200" fill="#1e8c4a">
+    <path d="M30,100 C30,60 70,20 110,30 C150,40 180,80 170,130 C160,170 110,190 70,180 C40,170 30,140 30,100Z"/>
+    <path d="M30,100 C70,90 100,100 130,120" stroke="#0a3d1a" stroke-width="3" fill="none"/>
+    <path d="M30,100 C60,130 90,150 120,160" stroke="#0a3d1a" stroke-width="2" fill="none"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja5" viewBox="0 0 150 150" fill="#4aad6a">
+    <path d="M20,70 C20,40 50,10 90,20 C130,30 140,70 120,110 C100,140 50,130 30,100 C10,80 20,70 20,70Z"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja6" viewBox="0 0 180 180" fill="#3a9e5a">
+    <path d="M100,20 C140,30 160,80 150,130 C140,160 90,170 60,150 C30,130 10,90 20,60 C30,30 60,10 100,20Z"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja7" viewBox="0 0 160 160" fill="#2d9e5e">
+    <path d="M80,10 C110,20 140,60 130,100 C120,140 80,150 50,130 C20,110 10,70 30,40 C50,10 60,0 80,10Z"/>
+  </svg>
+  
+  <svg class="hoja-decorativa hoja8" viewBox="0 0 200 200" fill="#1e7a42">
+    <path d="M150,30 C180,60 190,110 170,150 C150,180 100,190 70,170 C40,150 10,110 20,80 C30,50 80,20 150,30Z"/>
+  </svg>
+
+  <div class="contenido-felicitacion">
+    <h2><i class="fas fa-trophy"></i> ¡FELICITACIONES! <i class="fas fa-medal"></i></h2>
+    <div class="nombre-grado-feliz" id="felizNombreGrado"></div>
+    <div style="font-size: 2rem; margin: 10px 0;">🎉 Has completado el Ejercicio 1 🎉</div>
+    <div class="puntuacion-gigante">100/100</div>
+    <div style="font-size: 1.5rem; margin: 20px 0;">
+      <i class="fas fa-check-circle" style="color: #4caf50;"></i> 
+      Documento validado exitosamente
+    </div>
+    <button class="btn-cerrar-feliz" id="btnCerrarFelicitaciones">
+      <i class="fas fa-leaf"></i> CONTINUAR <i class="fas fa-leaf"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    const pantallaInicio = document.getElementById('pantallaInicio');
+    const modalLogin = document.getElementById('modalLogin');
+    const appEjercicio = document.getElementById('appEjercicio');
+    const btnEntrar = document.getElementById('btnEntrarJungla');
+    const btnAceptarLogin = document.getElementById('btnAceptarLogin');
+    const nombreInput = document.getElementById('nombreEstudiante');
+    const gradoInput = document.getElementById('gradoEstudiante');
+    const uploadInput = document.getElementById('uploadDoc');
+    const textoResultado = document.getElementById('textoResultado');
+    const detallesError = document.getElementById('detallesError');
+    const zonaCarga = document.getElementById('zonaCargaSimulada');
+    const barraProgreso = document.getElementById('barraProgresoFalsa');
+    const msgCodigo = document.getElementById('mensajeCodigoSimulado');
+    const ventanaFelicitaciones = document.getElementById('ventanaFelicitaciones');
+    const felizNombreGrado = document.getElementById('felizNombreGrado');
+    const btnCerrarFeliz = document.getElementById('btnCerrarFelicitaciones');
+
+    let nombreGuardado = '', gradoGuardado = '';
+
+    btnEntrar.addEventListener('click', ()=> modalLogin.style.display = 'flex');
+    
+    btnAceptarLogin.addEventListener('click', ()=>{
+      const n = nombreInput.value.trim(); const g = gradoInput.value.trim();
+      if(!n||!g) { alert('Completa todos los campos'); return; }
+      nombreGuardado = n; gradoGuardado = g;
+      modalLogin.style.display = 'none';
+      pantallaInicio.style.display = 'none';
+      appEjercicio.style.display = 'block';
+      iniciarBarraFalsa();
+    });
+
+    function iniciarBarraFalsa(){
+      zonaCarga.style.display = 'block';
+      barraProgreso.style.width = '0%';
+      let prog = 0;
+      const frases = ["> Cargando módulo selvático...", "> Conectando a NSC://jungla...", "> Desencriptando lianas...", "> ¡Acceso concedido!"];
+      const intv = setInterval(()=>{
+        prog += 12;
+        if(prog>=100){ 
+          prog=100; 
+          barraProgreso.style.width='100%'; 
+          barraProgreso.style.background='#2ecc71'; 
+          msgCodigo.innerHTML='> LISTO PARA RECIBIR DOCUMENTOS.'; 
+          clearInterval(intv); 
+          setTimeout(()=>zonaCarga.style.display='none',1000); 
+        } else { 
+          barraProgreso.style.width=prog+'%'; 
+          msgCodigo.innerHTML = frases[Math.floor(prog/30)] + ` (${prog}%)`; 
+        }
+      },150);
+    }
+
+    function esColorRojo(colorVal) {
+      if(!colorVal) return false;
+      const color = colorVal.toUpperCase().trim();
+      const rojosConocidos = ['FF0000', 'RED', 'ROJO', 'C0504D', 'C00000', 'E60000', 'CC0000', 'FF3333', 'FF6666'];
+      if(rojosConocidos.includes(color)) return true;
+      if(color.length === 6 && /^[0-9A-F]{6}$/.test(color)) {
+        const r = parseInt(color.substr(0,2), 16);
+        const g = parseInt(color.substr(2,2), 16);
+        const b = parseInt(color.substr(4,2), 16);
+        return (r > 120 && r > g * 1.3 && r > b * 1.3);
+      }
+      return false;
+    }
+
+    function extraerEstilosDeRun(rPr) {
+      let tamano = null, colorVal = null, fuente = null;
+      if(!rPr) return { tamano, colorVal, fuente };
+      
+      const sz = rPr.getElementsByTagNameNS("*", "sz")[0] || rPr.getElementsByTagNameNS("*", "szCs")[0];
+      if(sz) { const val = sz.getAttributeNS("*", "val") || sz.getAttribute("w:val") || sz.getAttribute("val"); if(val) tamano = parseInt(val) / 2; }
+      
+      const color = rPr.getElementsByTagNameNS("*", "color")[0];
+      if(color) colorVal = color.getAttributeNS("*", "val") || color.getAttribute("w:val") || color.getAttribute("val");
+      
+      const rFonts = rPr.getElementsByTagNameNS("*", "rFonts")[0];
+      if(rFonts) fuente = rFonts.getAttributeNS("*", "ascii") || rFonts.getAttribute("w:ascii") || rFonts.getAttributeNS("*", "hAnsi");
+      
+      return { tamano, colorVal, fuente };
+    }
+
+    async function evaluarDocumentoCompleto(file) {
+      textoResultado.innerHTML = '🔬 Analizando documento...';
+      detallesError.innerHTML = '';
+      const errores = [];
+      
+      const nombreArchivo = file.name;
+      const nombreSinExt = nombreArchivo.replace(/\.docx$/i, '');
+      const patronNombre = /(sexto\s*primaria|6to\.?\s*primaria)/i;
+      if(!nombreArchivo.toLowerCase().endsWith('.docx')) errores.push('❌ El archivo debe ser .docx');
+      if(!patronNombre.test(nombreSinExt)) errores.push('❌ El nombre debe incluir "Sexto Primaria" o "6to Primaria".');
+
+      try {
+        const zip = await JSZip.loadAsync(file);
+        const documentXml = await zip.file("word/document.xml").async("text");
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(documentXml, "application/xml");
+        
+        const arrayBuffer = await file.arrayBuffer();
+        const textResult = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+        const textoPlano = textResult.value;
+        const lineas = textoPlano.split('\n').filter(l => l.trim().length > 0);
+        const primeraLineaTexto = lineas.length > 0 ? lineas[0].trim() : '';
+        
+        const allParagraphs = xmlDoc.getElementsByTagNameNS("*", "p");
+        
+        let tituloTamanoOk = false, tituloColorOk = false;
+        let errorFuente = false, errorTamanioContenido = false, errorColorContenido = false;
+        let esPrimerParrafoConTexto = true;
+        
+        if(!/cadena\s+alimenticia/i.test(primeraLineaTexto)) {
+          errores.push('❌ La PRIMERA LÍNEA debe contener "cadena alimenticia".');
+        }
+        
+        for(let p of allParagraphs) {
+          const textos = p.getElementsByTagNameNS("*", "t");
+          let textoParrafo = ''; for(let t of textos) textoParrafo += t.textContent;
+          if(textoParrafo.trim().length === 0) continue;
+          
+          const esTitulo = esPrimerParrafoConTexto;
+          if(esTitulo) {
+            esPrimerParrafoConTexto = false;
+            const runs = p.getElementsByTagNameNS("*", "r");
+            for(let run of runs) {
+              const rPr = run.getElementsByTagNameNS("*", "rPr")[0];
+              const estilos = extraerEstilosDeRun(rPr);
+              if(estilos.tamano === 16) tituloTamanoOk = true;
+              if(esColorRojo(estilos.colorVal)) tituloColorOk = true;
+              if(estilos.fuente && !estilos.fuente.toLowerCase().includes('times new roman')) errorFuente = true;
+            }
+          } else {
+            const runs = p.getElementsByTagNameNS("*", "r");
+            for(let run of runs) {
+              const rPr = run.getElementsByTagNameNS("*", "rPr")[0];
+              const estilos = extraerEstilosDeRun(rPr);
+              const textoRun = run.getElementsByTagNameNS("*", "t")[0]?.textContent || '';
+              if(textoRun.trim().length === 0) continue;
+              
+              if(estilos.tamano && estilos.tamano !== 12) errorTamanioContenido = true;
+              const color = estilos.colorVal;
+              const esNegro = !color || color === '000000' || color === 'auto' || color === 'black' || color === '0' || color === 'FFFFFF';
+              if(!esNegro && !esColorRojo(color)) errorColorContenido = true;
+              if(estilos.fuente && !estilos.fuente.toLowerCase().includes('times new roman')) errorFuente = true;
+            }
+          }
+        }
+        
+        if(!tituloTamanoOk) errores.push('⚠️ El título debe tener tamaño 16.');
+        if(!tituloColorOk) errores.push('⚠️ El título debe ser de color ROJO.');
+        if(errorFuente) errores.push('⚠️ Todo el documento debe usar fuente "Times New Roman".');
+        if(errorTamanioContenido) errores.push('⚠️ El contenido debe tener tamaño 12.');
+        if(errorColorContenido) errores.push('⚠️ El contenido debe ser de color NEGRO.');
+        
+        if(!/cadena\s+alimenticia/i.test(textoPlano)) errores.push('⚠️ El documento debe explicar qué es la cadena alimenticia.');
+        if(!/(depredador|predador)/i.test(textoPlano) || !/presa/i.test(textoPlano)) errores.push('⚠️ Falta información sobre depredador y presa.');
+        if(!textoPlano.includes('Documento de Laboratorio NSC')) errores.push('❌ Falta el texto final "Documento de Laboratorio NSC".');
+        
+        if(errores.length === 0) {
+          textoResultado.innerHTML = '';
+          detallesError.innerHTML = '';
+          felizNombreGrado.innerHTML = `${nombreGuardado} · ${gradoGuardado}`;
+          ventanaFelicitaciones.style.display = 'flex';
+        } else {
+          textoResultado.innerHTML = '<span class="brillante-error">❌ DOCUMENTO INVÁLIDO ❌</span>';
+          let lista = '<ul style="color:#a00; text-align:left;">';
+          errores.forEach(e => lista += `<li>${e}</li>`);
+          lista += '</ul><p><i class="fas fa-sync-alt"></i> Corrige y vuelve a subir.</p>';
+          detallesError.innerHTML = lista;
+          uploadInput.value = '';
+        }
+      } catch (err) {
+        textoResultado.innerHTML = '⚠️ Error al procesar el documento.';
+        console.error(err);
+      }
+    }
+
+    uploadInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(file) evaluarDocumentoCompleto(file);
+    });
+
+    btnCerrarFeliz.addEventListener('click', ()=>{
+      ventanaFelicitaciones.style.display = 'none';
+      uploadInput.value = '';
+      textoResultado.innerHTML = 'Esperando documento...';
+      detallesError.innerHTML = '';
+    });
+
+    modalLogin.addEventListener('click', (e)=> { if(e.target === modalLogin) modalLogin.style.display = 'none'; });
+  })();
+</script>
+</body>
+</html>
